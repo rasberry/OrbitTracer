@@ -30,24 +30,19 @@ namespace OrbitTracer
 			this.Show();
 
 			Renderer = new Render();
+
+			var size = this.pictureBox1.Size;
 			Config = new FracConfig {
 				Escape = 4.0,
 				Plane = Planes.XY,
-				Scale = 1.0/3.0,
+				Resolution = 200.0,
 				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
 				IterMax = 1000,
-				OffsetX = -0.7, OffsetY = -0.5
+				OffsetX = size.Width/2,
+				OffsetY = size.Height/2
 			};
 
-			int w = this.pictureBox1.Width;
-			int h = this.pictureBox1.Height;
-
-			Fractal = new Bitmap(w,h,PixelFormat.Format32bppArgb);
-			Highlight = new Bitmap(w,h,PixelFormat.Format32bppArgb);
-			Canvas = new Bitmap(w,h,PixelFormat.Format32bppArgb);
-
-			await Renderer.RenderToBitmap(Fractal,Config);
-			this.pictureBox1.Image = Fractal;
+			MainForm_Resize(sender,e);
 		}
 
 		static int Min(int one,int two,int three)
@@ -102,16 +97,49 @@ namespace OrbitTracer
 		}
 
 		static bool HighlightIsRendering = false;
-		private async void pictureBox1_MouseClick(object sender, MouseEventArgs e)
-		{
+		static bool IsMouseDown = false;
+		static bool IsRedrawing = false;
+		static bool IsDragging = false;
 
-			if (HighlightIsRendering) { return; }
+		private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (e.Button.HasFlag(MouseButtons.Left)) {
+				IsMouseDown = true;
+				pictureBox1_MouseMove(sender,e);
+			} else if (e.Button.HasFlag(MouseButtons.Middle)) {
+				IsDragging = true;
+				MouseDragStartLoc = e.Location;
+				OffsetDragStart = new Point(Config.OffsetX, Config.OffsetY);
+
+			}
+		}
+
+		private async void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+		{
+			if (e.Button.HasFlag(MouseButtons.Left)) {
+				IsMouseDown = false;
+			} else if (e.Button.HasFlag(MouseButtons.Middle)) {
+				IsDragging = false;
+				await Redraw();
+			}
+		}
+
+		Point MouseDragStartLoc;
+		Point OffsetDragStart;
+
+		private async void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+		{
+			if (IsDragging) {
+				int dx = e.Location.X - MouseDragStartLoc.X;
+				int dy = e.Location.Y - MouseDragStartLoc.Y;
+				Config.OffsetX = OffsetDragStart.X + dx;
+				Config.OffsetY = OffsetDragStart.Y + dy;
+			}
+
+			bool shouldRender = !IsRedrawing && !HighlightIsRendering && (IsMouseDown || IsDragging);
+			if (!shouldRender) { return; }
+
 			HighlightIsRendering = true;
-			//var loc = this.pictureBox1.PointToScreen(e.Location);
-			//var loc = this.pictureBox1.PointToClient(e.Location);
-			//var loc = this.pictureBox1.Location;
-			//loc.X = e.X - loc.X;
-			//loc.Y = e.Y - loc.Y;
 			var loc = e.Location;
 
 			ClearBitmap(Highlight);
@@ -122,12 +150,24 @@ namespace OrbitTracer
 			HighlightIsRendering = false;
 		}
 
-		//private async void pictureBox1_Click(object sender, EventArgs e)
-		//{
-		//	e.
-		//
-		//	ClearBitmap(Highlight);
-		//	await Renderer.RenderOrbitAnyc(Highlight,Config,
-		//}
+		private async void MainForm_Resize(object sender, EventArgs e)
+		{
+			await Redraw();
+		}
+
+		private async Task Redraw()
+		{
+			IsRedrawing = true;
+			int w = this.pictureBox1.Width;
+			int h = this.pictureBox1.Height;
+
+			Fractal = new Bitmap(w,h,PixelFormat.Format32bppArgb);
+			Highlight = new Bitmap(w,h,PixelFormat.Format32bppArgb);
+			Canvas = new Bitmap(w,h,PixelFormat.Format32bppArgb);
+
+			await Renderer.RenderToBitmap(Fractal,Config);
+			this.pictureBox1.Image = Fractal;
+			IsRedrawing = false;
+		}
 	}
 }

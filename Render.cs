@@ -102,8 +102,8 @@ namespace OrbitTracer
 				for (int iter = 0; iter < escapeiter; iter++)
 				{
 					Complex f = points[iter];
-					int bx = WorldToWin(f.Real, conf.Scale, wth, conf.OffsetX);
-					int by = WorldToWin(f.Imaginary, conf.Scale, hth, conf.OffsetY);
+					int bx = WorldToWin(f.Real, conf.Resolution, wth, conf.OffsetX);
+					int by = WorldToWin(f.Imaginary, conf.Resolution, hth, conf.OffsetY);
 					if (bx > 0 && bx < wth && by > 0 && by < hth) {
 						lb.SetPixel(bx,by,highlight);
 					}
@@ -132,8 +132,8 @@ namespace OrbitTracer
 
 		static void InitZC(FracConfig conf, int x, int y, int wth, int hth, out Complex z, out Complex c)
 		{
-			double cx = WinToWorld(x, conf.Scale, wth, conf.OffsetX);
-			double cy = WinToWorld(y, conf.Scale, hth, conf.OffsetY);
+			double cx = WinToWorld(x, conf.Resolution, wth, conf.OffsetX);
+			double cy = WinToWorld(y, conf.Resolution, hth, conf.OffsetY);
 
 			switch(conf.Plane)
 			{
@@ -176,8 +176,8 @@ namespace OrbitTracer
 			for(int iter = 0; iter < escapeiter; iter++)
 			{
 				Complex f = points[iter];
-				int bx = WorldToWin(f.Real,conf.Scale,wth,conf.OffsetX);
-				int by = WorldToWin(f.Imaginary,conf.Scale,hth,conf.OffsetY);
+				int bx = WorldToWin(f.Real,conf.Resolution,wth,conf.OffsetX);
+				int by = WorldToWin(f.Imaginary,conf.Resolution,hth,conf.OffsetY);
 				if (bx > 0 && bx < wth && by > 0 && by < hth) {
 					InterlockedAdd(ref data[bx,by],1);
 				}
@@ -223,15 +223,18 @@ namespace OrbitTracer
 			return iter;
 		}
 
-		static double WinToWorld(int v, double magnify, int res, double offset)
+		static double WinToWorld(int v, double magnify, int res, int offset)
 		{
 			//return (v + offset)/(double)res / magnify;
-			return (((double)v) / ((double)res) + offset) / magnify;
+			//return (((double)v) / ((double)res) + offset) / magnify;
+			return (v - offset) / magnify;
+
 		}
-		static int WorldToWin(double v, double magnify, int res, double offset)
+		static int WorldToWin(double v, double magnify, int res, int offset)
 		{
 			//return (int)Math.Round(res * magnify * v) - offset;
-			return (int)Math.Round((double)res * (magnify * v - offset));
+			//return (int)Math.Round((double)res * (magnify * v - offset));
+			return (int)Math.Round(v * magnify) + offset;
 		}
 
 		static double InterlockedAdd(ref double location1, double value)

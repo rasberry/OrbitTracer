@@ -14,11 +14,11 @@ namespace OrbitTracer
 		public double W;
 		public double Z;
 		public Planes Plane;
-		public double Scale;
+		public double Resolution;
 		public double Escape;
 		public int IterMax;
-		public double OffsetX;
-		public double OffsetY;
+		public int OffsetX;
+		public int OffsetY;
 
 		public static FracConfig Default { get {
 			return new FracConfig {
@@ -27,7 +27,7 @@ namespace OrbitTracer
 				W = 0.0,
 				Z = 0.0,
 				Plane = Planes.XY,
-				Scale = 1.0,
+				Resolution = 20.0,
 				Escape = 4.0,
 				IterMax = 100
 			};
