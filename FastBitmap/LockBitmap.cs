@@ -23,7 +23,7 @@ namespace FastBitmap
 		byte* Iptr = null;
 		BitmapData bitmapData = null;
 		bool isLocked = false;
-		int Length = -1;
+		long Length = -1;
 
 		public LockBitmap(Bitmap source)
 		{
@@ -38,12 +38,14 @@ namespace FastBitmap
 		/// </summary>
 		public void LockBits()
 		{
+			if (isLocked) { return; }
+
 			// Get width and height of bitmap
 			Width = source.Width;
 			Height = source.Height;
  
 			// get total locked pixels count
-			int pixelCount = Width * Height;
+			long pixelCount = Width * Height;
  
 			// Create rectangle to lock
 			Rectangle rect = new Rectangle(0, 0, Width, Height);
@@ -78,9 +80,8 @@ namespace FastBitmap
 		/// </summary>
 		public void UnlockBits()
 		{
-			// Copy data from byte array to pointer
-			//Marshal.Copy(Pixels, 0, Iptr, Pixels.Length);
- 
+			if (!isLocked) { return; }
+
 			// Unlock bitmap data
 			source.UnlockBits(bitmapData);
 			isLocked = false;
@@ -152,6 +153,7 @@ namespace FastBitmap
 			int i = ((y * Width) + x) * cCount;
 
 			if (i > Length - cCount) {
+				Console.WriteLine("Bad index i="+i+" Length="+Length+" cCount="+cCount);
 				throw new IndexOutOfRangeException();
 			}
 	 

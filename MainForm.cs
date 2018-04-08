@@ -21,11 +21,11 @@ namespace OrbitTracer
 
 		Render Renderer;
 		FracConfig Config;
-		Bitmap Canvas;
-		Bitmap Highlight;
-		Bitmap Fractal;
+		BitmapCanvas Canvas;
+		BitmapCanvas Highlight;
+		BitmapCanvas Fractal;
 
-		private async void mainform_Load(object sender, EventArgs e)
+		private void mainform_Load(object sender, EventArgs e)
 		{
 			this.Show();
 
@@ -53,46 +53,27 @@ namespace OrbitTracer
 			return temp;
 		}
 
-		static void JoinBitmaps(Bitmap bottom, Bitmap top, Bitmap dest)
+		static void JoinBitmaps(BitmapCanvas bottom, BitmapCanvas top, BitmapCanvas dest)
 		{
 			int w = Min(bottom.Width,top.Width,dest.Width);
 			int h = Min(bottom.Height,top.Height,dest.Height);
-
-			using (var b = new FastBitmap.LockBitmap(bottom))
-			using (var t = new FastBitmap.LockBitmap(top))
-			using (var d = new FastBitmap.LockBitmap(dest))
-			{
-				b.LockBits();
-				t.LockBits();
-				d.LockBits();
-
-				for(int y=0; y<h; y++) {
-					for(int x=0; x<w; x++) {
-						Color bc = b.GetPixel(x,y);
-						Color tc = t.GetPixel(x,y);
-						Color fin = tc.ToArgb() == 0 ? bc : tc;
-						d.SetPixel(x,y,fin);
-					}
+			for(int y=0; y<h; y++) {
+				for(int x=0; x<w; x++) {
+					Color bc = bottom.GetPixel(x,y);
+					Color tc = top.GetPixel(x,y);
+					Color fin = tc.ToArgb() == 0 ? bc : tc;
+					dest.SetPixel(x,y,fin);
 				}
-
-				d.UnlockBits();
-				t.UnlockBits();
-				b.UnlockBits();
 			}
 		}
 
-		static void ClearBitmap(Bitmap img)
+		static void ClearBitmap(BitmapCanvas img)
 		{
 			Color c = Color.FromArgb(0);
-			using (var b = new FastBitmap.LockBitmap(img))
-			{
-				b.LockBits();
-				for(int y=0; y<img.Height; y++) {
-					for(int x=0; x<img.Width; x++) {
-						b.SetPixel(x,y,c);
-					}
+			for(int y=0; y<img.Height; y++) {
+				for(int x=0; x<img.Width; x++) {
+					img.SetPixel(x,y,c);
 				}
-				b.UnlockBits();
 			}
 		}
 
@@ -110,7 +91,6 @@ namespace OrbitTracer
 				IsDragging = true;
 				MouseDragStartLoc = e.Location;
 				OffsetDragStart = new Point(Config.OffsetX, Config.OffsetY);
-
 			}
 		}
 
@@ -145,7 +125,7 @@ namespace OrbitTracer
 			ClearBitmap(Highlight);
 			await Renderer.RenderOrbitAsync(Highlight,Config,loc.X,loc.Y,Color.Red);
 			JoinBitmaps(Fractal,Highlight,Canvas);
-			this.pictureBox1.Image = Canvas;
+			this.pictureBox1.Image = Canvas.Source;
 			this.pictureBox1.Refresh();
 			HighlightIsRendering = false;
 		}
@@ -161,12 +141,12 @@ namespace OrbitTracer
 			int w = this.pictureBox1.Width;
 			int h = this.pictureBox1.Height;
 
-			Fractal = new Bitmap(w,h,PixelFormat.Format32bppArgb);
-			Highlight = new Bitmap(w,h,PixelFormat.Format32bppArgb);
-			Canvas = new Bitmap(w,h,PixelFormat.Format32bppArgb);
+			Fractal = new BitmapCanvas(w,h);
+			Highlight = new BitmapCanvas(w,h);
+			Canvas = new BitmapCanvas(w,h);
 
-			await Renderer.RenderToBitmap(Fractal,Config);
-			this.pictureBox1.Image = Fractal;
+			await Renderer.RenderToCanvas(Fractal,Config);
+			this.pictureBox1.Image = Fractal.Source;
 			IsRedrawing = false;
 		}
 	}

@@ -15,7 +15,7 @@ namespace OrbitTracer
 	{
 		double[,] data;
 
-		public async Task RenderToBitmap(Bitmap canvas, FracConfig config)
+		public async Task RenderToCanvas(ICanvas canvas, FracConfig config)
 		{
 			int width = canvas.Width;
 			int height = canvas.Height;
@@ -32,7 +32,7 @@ namespace OrbitTracer
 
 			var taskList = new List<Task>(height*width);
 
-			Console.WriteLine("spooling tasks");
+			Console.WriteLine("spooling tasks "+height);
 			for(int y=0; y<height; y++) {
 				var task = RenderRowAsync(config,y,width,height,data);
 				taskList.Add(task);
@@ -54,37 +54,37 @@ namespace OrbitTracer
 			double range = Math.Abs(max - min);
 			double mult = 255.0/range;
 
-			using (var lb = new FastBitmap.LockBitmap(canvas))
-			{
-				lb.LockBits();
-				for(int y=0; y<height; y++) {
-					for(int x=0; x<width; x++) {
-						double d = data[x,y];
-						if (d > 0) { d = Math.Log10(d); }
-						Color c;
-						if (d <= 0) {
-							c = Color.Black;
-						} else {
-							double q = d*mult - min;
-							//int w = (int)Math.Min(255.0,Math.Max(0,q));
-							int w = (int)q;
-							c = Color.FromArgb(w,w,w);
-						}
-						lb.SetPixel(x,y,c);
+			for(int y=0; y<height; y++) {
+				for(int x=0; x<width; x++) {
+					double d = data[x,y];
+					if (d > 0) { d = Math.Log10(d); }
+					Color c;
+					if (d <= 0) {
+						c = Color.Black;
+					} else {
+						double q = d*mult - min;
+						//int w = (int)Math.Min(255.0,Math.Max(0,q));
+						int w = (int)q;
+						c = Color.FromArgb(w,w,w);
+					}
+					try {
+						canvas.SetPixel(x,y,c);
+					} catch {
+						Console.WriteLine("!! Trying to set x="+x+" y="+y+" c="+c+" w="+width+" h="+height);
+						throw;
 					}
 				}
-				lb.UnlockBits();
 			}
 		}
 
-		public Task RenderOrbitAsync(Bitmap canvas, FracConfig conf, int x, int y, Color highlight)
+		public Task RenderOrbitAsync(ICanvas canvas, FracConfig conf, int x, int y, Color highlight)
 		{
 			return Task.Run(() => {
 				RenderOrbitToBitmap(canvas,conf,x,y,highlight);
 			});
 		}
 
-		static void RenderOrbitToBitmap(Bitmap canvas, FracConfig conf, int x, int y, Color highlight)
+		static void RenderOrbitToBitmap(ICanvas canvas, FracConfig conf, int x, int y, Color highlight)
 		{
 			int wth = canvas.Width;
 			int hth = canvas.Height;
@@ -95,24 +95,17 @@ namespace OrbitTracer
 			Complex[] points = new Complex[conf.IterMax];
 			int escapeiter = FillOrbit(points,conf.IterMax,z,c,conf.Escape);
 
-			using (var lb = new FastBitmap.LockBitmap(canvas))
+			for (int iter = 0; iter < escapeiter; iter++)
 			{
-				lb.LockBits();
-
-				for (int iter = 0; iter < escapeiter; iter++)
-				{
-					Complex f = points[iter];
-					int bx = WorldToWin(f.Real, conf.Resolution, wth, conf.OffsetX);
-					int by = WorldToWin(f.Imaginary, conf.Resolution, hth, conf.OffsetY);
-					if (bx > 0 && bx < wth && by > 0 && by < hth) {
-						lb.SetPixel(bx,by,highlight);
-					}
+				Complex f = points[iter];
+				int bx = WorldToWin(f.Real, conf.Resolution, wth, conf.OffsetX);
+				int by = WorldToWin(f.Imaginary, conf.Resolution, hth, conf.OffsetY);
+				if (bx > 0 && bx < wth && by > 0 && by < hth) {
+					canvas.SetPixel(bx,by,highlight);
 				}
-
-				lb.SetPixel(x,y,Color.Blue);
-
-				lb.UnlockBits();
 			}
+
+			canvas.SetPixel(x,y,Color.Blue);
 		}
 
 		static Task RenderRowAsync(FracConfig conf, int y, int wth, int hth, double[,] data)
