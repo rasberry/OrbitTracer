@@ -33,24 +33,24 @@ namespace OrbitTracer
 
 		public void SetPixel(int x, int y, Color c)
 		{
-			fast.LockBits();
+			if (!isLocked) { fast.LockBits(); isLocked = true;}
 			fast.SetPixel(x,y,c);
 		}
 
 		public Color GetPixel(int x, int y)
 		{
-			fast.LockBits();
+			if (!isLocked) { fast.LockBits(); isLocked = true;}
 			return fast.GetPixel(x,y);
 		}
 
 		public Bitmap Source { get {
-			fast.UnlockBits();
+			if (isLocked) { fast.UnlockBits(); isLocked = false; }
 			return bitmap;
 		} }
 
 		public void SavePng(string filename)
 		{
-			fast.UnlockBits();
+			if (isLocked) { fast.UnlockBits(); isLocked = false; }
 			bitmap.Save(filename,ImageFormat.Png);
 		}
 
@@ -61,5 +61,6 @@ namespace OrbitTracer
 
 		Bitmap bitmap;
 		FastBitmap.LockBitmap fast;
+		bool isLocked;
 	}
 }
