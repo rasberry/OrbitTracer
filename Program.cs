@@ -54,7 +54,7 @@ namespace OrbitTracer
 		}
 
 		static void ProduceOrbits() {
-
+			//TODO implement
 		}
 
 		static bool ShouldCreateOrbits = false;
@@ -98,33 +98,6 @@ namespace OrbitTracer
 						showHelp = true;
 					}
 				}
-				//else if (c == "-s" && (a += 4) < args.Length)
-				//{
-				//	string ri = args[a - 3];
-				//	string rx = args[a - 2];
-				//	string ii = args[a - 1];
-				//	string ix = args[a - 0];
-				//	if (!double.TryParse(ri, out RealMin))
-				//	{
-				//		Console.WriteLine("Invalid Real Min " + ri);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(rx, out RealMax))
-				//	{
-				//		Console.WriteLine("Invalid Real Max " + rx);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(ii, out ImagMin))
-				//	{
-				//		Console.WriteLine("Invalid Imaginary Min " + ii);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(ix, out ImagMax))
-				//	{
-				//		Console.WriteLine("Invalid Imaginary Max " + ix);
-				//		showHelp = true;
-				//	}
-				//}
 				else if (c == "-r" && ++a < args.Length)
 				{
 					string res = args[a];
@@ -150,24 +123,6 @@ namespace OrbitTracer
 					Console.WriteLine("E: output image size is invalid");
 					showHelp = true;
 				}
-				//if (RealMin > RealMax) {
-				//	double temp = RealMin;
-				//	RealMin = RealMax;
-				//	RealMax = temp;
-				//}
-				//if (RealMax - RealMin < double.Epsilon) {
-				//	Console.WriteLine("E: Real number range must be bigger than zero");
-				//	showHelp = true;
-				//}
-				//if (ImagMin > ImagMax) {
-				//	double temp = ImagMin;
-				//	ImagMin = ImagMax;
-				//	ImagMax = temp;
-				//	if (ImagMax - ImagMin < double.Epsilon) {
-				//		Console.WriteLine("E: Imaginary number range must be bigger than zero");
-				//		showHelp = true;
-				//	}
-				//}
 				if (Resolution < double.Epsilon) {
 					Console.WriteLine("E: Resolution must be greater than zero");
 					showHelp = true;
@@ -178,7 +133,6 @@ namespace OrbitTracer
 				Console.WriteLine("\n"+nameof(OrbitTracer)+" [options] (filename / prefix)"
 					+"\nOptions:"
 					+"\n --help / -h                       Show this help"
-					//+"\n -s (rmin) (rmax) (imin) (imax)    Dimensions of space to render - real and imaginary"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"
 					+"\n -o                                Output orbits instead of nebulabrot"
